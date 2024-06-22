@@ -1,0 +1,136 @@
+MODEL:
+  # "Radatron" for two stream and "GeneralizedRCNN" for single stream
+  META_ARCHITECTURE: "Radatron"
+  BACKBONE:
+    FREEZE_AT: 0
+    NAME: "build_radatron_resnet_fpn_backbone"
+    FREEZE_AT: 0
+  PIXEL_MEAN: (0,)
+  PIXEL_STD: (1,) 
+  PROPOSAL_GENERATOR:
+    NAME: "PrecomputedProposals"
+  ANCHOR_GENERATOR:
+    NAME: "RotatedAnchorGenerator"
+    SIZES: [[28, 35]]  # One size for each in feature map
+    ASPECT_RATIOS: [[2.5]]  # Three aspect ratios (same for all in feature maps)
+    ANGLES: [-90, -45, 0, 45] #[[-90,-60, -30, 0, 30, 60]] #[[-90, -45, 0, 45]] 
+  RESNETS:
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
+    NORM: "BN"
+    STEM_OUT_CHANNELS: 64
+    DEPTH: 50
+  FPN:
+    IN_FEATURES: ["res2", "res3", "res4", "res5"]
+  RPN:
+    HEAD_NAME: "StandardRPNHead"
+    BBOX_REG_WEIGHTS: (1,1,1,1,1)
+    NMS_THRESH: 0.7
+    IN_FEATURES: ["p2", "p3", "p4", "p5", "p6"]
+    PRE_NMS_TOPK_TRAIN: 2000  # Per FPN level
+    PRE_NMS_TOPK_TEST: 1000  # Per FPN level
+    POST_NMS_TOPK_TRAIN: 1000
+    POST_NMS_TOPK_TEST: 1000
+    IOU_THRESHOLDS: [0.4, 0.5]
+    BATCH_SIZE_PER_IMAGE: 256
+    POSITIVE_FRACTION: 0.5
+  ROI_HEADS:
+    BATCH_SIZE_PER_IMAGE: 512
+    POSITIVE_FRACTION: 0.25
+    NUM_CLASSES: 1
+    SCORE_THRESH_TEST: 0.05
+    NMS_THRESH_TEST: 0.05
+    NAME: "RROIHeads"
+    IN_FEATURES: ["p2", "p3", "p4", "p5"]
+  ROI_BOX_HEAD:
+    POOLER_TYPE: "ROIAlignRotated"
+    BBOX_REG_WEIGHTS: (10,10,5,5,1)
+    NAME: "FastRCNNConvFCHead"
+    NUM_FC: 2 #0
+    POOLER_RESOLUTION: 7 #14
+  ROI_MASK_HEAD:
+    NAME: "MaskRCNNConvUpsampleHead"
+    NUM_CONV: 4
+    POOLER_RESOLUTION: 14
+  MASK_ON: False
+SOLVER:
+  BASE_LR: 0.01
+  GAMMA: 0.2
+  STEPS: (15000, 20000) #(50000,70000)
+  MAX_ITER: 25000 #50000 #150000
+  CHECKPOINT_PERIOD: 1000
+  IMS_PER_BATCH: 8
+DATASETS:
+  TRAIN: ("radar_train",)
+  TEST : ("radar_val",)
+DATALOADER:
+  NUM_WORKERS: 32
+INPUT:
+  FORMAT: "RADAR"
+  MIN_SIZE_TRAIN: (180,)
+  MAX_SIZE_TRAIN: 1000
+TEST:
+  EVAL_PERIOD: 2000
+PREPROCESS:
+  TAKE_LOG: False
+  NORMALIZE: True
+AUGS:
+  AUG_LIST: ["flip", "rot"] #flip, rot, rb, rc
+  FLIP_PROB: 0.5
+  RAND_BRIGHT: 0.2
+  RAND_CONTRAST: 0.2
+  ROT_AUG:
+    RANGE: [-45, 45]
+    EXPAND: False
+    SAMPLE_STYLE: "choice"
+    FILL_ZEROS: True
+DATAROOT: "/mnt/sens_data1/yiduo/data/radatron_dataset_152k/"
+DATAPATHS:
+  CATEGORIES: ["car"]
+  TRAIN: ["0305_exp1", "0305_exp2", "0305_exp3", "0308_exp1", "0308_exp3", "0308_exp4", "0309_exp1", "0309_exp2", "0312_exp1", "0312_exp2", "0312_exp3"]
+  # TRAIN: ["0305_exp1"]
+  TEST: []
+FUSION: 
+  COMBINE_CONV: 3
+DATALOADING:
+  #P: High-Res Only, P1: Low-Res Only, #P1chip: 1 chip only, PB: high-res + low-res (Radatron)
+  #PBD: 9tx, 1tx+dop, #P: Power Only, P1: Power 1TX only, #P1chip: Power 1 chip only, PB: Power 9TX+1TX, 
+  #R: raw version of radar input
+  INPUT_STYLE: "R" 
+  SSL: True
+  COMPENSATION: True 
+  NUM_SAMPLES: -1 #all
+  P2C_WEIGHTS: 'p2c_weights.mat' #256x320 
+  R_BINS: 448 #range bins 2-24.4
+  PHI_BINS: 192 #angle bins
+  NORM_HRNF: 1.5 #High Res No Fix
+  NORM_HR: 1.3 #HighRes
+  NORM_LR: 1.4 #LowRes
+  NORM_1CHIP: 1.3 #1chip
+  X_BINS: 320 # -16 to 16
+  Y_BINS: 256 # 0 to 25.6
+  X_RANGE: [-16, 15.90]
+  Y_RANGE: [0, 25.50]
+  ANGLE_RANGE: 180
+APPLY_AUGS: False
+SSL:
+  DISTILLATION_SOURCE: 'CLIP'
+  USE_CONV: False
+  AUG_LIST: [] #flip, rot, rb, rc
+  AUG_FLIP_PROB: 0.0
+  AUG_VFLIP_PROB: 0.0
+  AUG_THRESHOLD_PROB: 0.0
+  AUG_THRESHOLD_LEVEL: 0.1
+  RW_BINARY: 0.9
+  RW_PHASE_FRACTION: 0.1
+  RW_APPLY: 1
+  AUG_CUTOUT_PROB: 0.0
+  AUG_CUTOUT_SIZE: 0.5
+  AUG_ROT_PROB: 0.0
+  AUG_ROT_RANGE: 45
+OUTPUT_DIR: "/output"
+TRAIN_SAMPLE: "False"
+TRAIN_SAMPLE_PATH: ""
+
+
+
+
