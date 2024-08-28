@@ -141,10 +141,28 @@ For python-based LazyConfig, use "path.key=value".
         nargs=argparse.REMAINDER,
     )
 
-    # For SSL on Radatron
+    # For Radical
     parser.add_argument("--use_wandb", action="store_true", help="use wandb for logging")
     parser.add_argument("--wandb_name", type=str, help="name of wandb run")
-    parser.add_argument("--ssl_radatron", action="store_true", help="use ssl radatron")
+    parser.add_argument("--use_radical", action="store_true", help="use radical")
+    parser.add_argument("--output_dir", default="/mnt/sens_data1/yiduo/output/latest", help="path to output folder")
+    parser.add_argument("--single_gpu", action="store_true", help="use a single gpu for debugging")
+    parser.add_argument("--source_folder", default="CLIP_Left", type=str, choices=["CLIP_Left", "CLIP_Left_avg", "CLIP_Left_pad", "CLIP_Left_resize", "CLIP_Left_newpad", "VIT_Left_resize"], help="the name of the source folder for ssl")
+    parser.add_argument("--in_batch_loss", action="store_true", help="use in batch contrastive loss")
+    parser.add_argument("--intra_weight", default=2, type=float, help="weight for intra loss")
+    parser.add_argument("--symmetric_loss", action="store_true", help="use symmetric loss in MoCo")
+    parser.add_argument("--symmetric_loss_version", default=0, type=int, help="version of symmetric loss in MoCo")
+    parser.add_argument("--intra_only", action="store_true", help="only use intra-modal loss")
+
+    
+    parser.add_argument("--rw_binary", default=0.9, type=float, help="rw_binary")
+    parser.add_argument("--rw_phase", default=0.1, type=float, help="rw_phase")
+    parser.add_argument("--no_rw_lowres", action="store_true", help="only use intra-modal loss")
+    parser.add_argument("--h_flip", action="store_true", help="use horizontal flip with 0.5 prob")
+    parser.add_argument("--crop", action="store_true", help="use crop")
+    parser.add_argument("--rot", action="store_true", help="use rot")
+
+
     parser.add_argument("--gpu", default=None, type=int, help="GPU id to use.")
     parser.add_argument(
         "-b",
@@ -172,8 +190,6 @@ For python-based LazyConfig, use "path.key=value".
         dest="lr",
     )
     parser.add_argument("--cos", action="store_true", help="use cosine lr schedule")
-    parser.add_argument("--output_dir", default="/mnt/sens_data1/yiduo/output/latest", help="path to output folder")
-    parser.add_argument("--single_gpu", action="store_true", help="use wandb for logging")
 
     parser.add_argument(
         "--multiprocessing-distributed",
@@ -192,11 +208,9 @@ For python-based LazyConfig, use "path.key=value".
     parser.add_argument(
         "--rank", default=-1, type=int, help="node rank for distributed training"
     )
-    parser.add_argument("--ssl_method", type=str, help="method of ssl")
     parser.add_argument(
         "--moco-dim", default=128, type=int, help="feature dimension (default: 128)"
     )
-
     parser.add_argument(
         "-j",
         "--workers",
@@ -205,13 +219,6 @@ For python-based LazyConfig, use "path.key=value".
         metavar="N",
         help="number of data loading workers (default: 32)",
     )
-    parser.add_argument("--mask_frame", default=0, type=int, help="num frames for masking")
-    parser.add_argument("--source_folder", default="CLIP_Left", type=str, help="the name of the source folder for ssl")
-    parser.add_argument("--seg_num", default=3, type=int, help="num frames for masking")
-    parser.add_argument("--seg_method", default="seperate", type=str, help="the name of the source folder for ssl")
-    parser.add_argument("--source_name", default="swin2", type=str, help="the source file name for ssl")
-    parser.add_argument("--bevfusion_pool", default="avg", type=str, help="the source file name for ssl")
-    parser.add_argument("--intra_weight", default=2, type=float, help="weight for intra loss")
     parser.add_argument(
         "--schedule",
         default=[120, 160],
@@ -222,19 +229,6 @@ For python-based LazyConfig, use "path.key=value".
     parser.add_argument(
         "--epochs", default=200, type=int, metavar="N", help="number of total epochs to run"
     )
-    parser.add_argument("--in_batch_loss", action="store_true", help="use in batch contrastive loss")
-    parser.add_argument("--mo_loss", action="store_true", help="use in batch contrastive loss")
-    parser.add_argument("--symmetric_loss", action="store_true", help="use symmetric loss in MoCo")
-    parser.add_argument("--queue_portion", default=1, type=float, help="use part of queue for MoCo")
-    parser.add_argument("--print_sample_idx", action="store_true", help="use in batch contrastive loss")
-    parser.add_argument("--symmetric_loss_version", default=0, type=int, help="version of symmetric loss in MoCo")
-    parser.add_argument("--intra_only", action="store_true", help="only use intra-modal loss")
-    parser.add_argument("--rw_binary", default=0.9, type=float, help="rw_binary")
-    parser.add_argument("--rw_phase", default=0.1, type=float, help="rw_phase")
-    parser.add_argument("--no_rw_lowres", action="store_true", help="only use intra-modal loss")
-    parser.add_argument("--h_flip", action="store_true", help="use horizontal flip with 0.5 prob")
-    parser.add_argument("--crop", action="store_true", help="use crop")
-    parser.add_argument("--rot", action="store_true", help="use rot")
 
     return parser
 

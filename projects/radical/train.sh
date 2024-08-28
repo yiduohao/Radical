@@ -6,8 +6,9 @@ python radical/main_radical.py \
     --output_dir /output \
     --source_folder CLIP_Left_resize \
     --rw_binary 1.0 --rw_phase 0.0 \
-    --config ./configs/radical_config.yaml OUTPUT_DIR "/output" TRAIN_SAMPLE "True" TRAIN_SAMPLE_PATH "/all_file_path.json" \
-    --h_flip --crop 
+    --h_flip --crop \
+    --config ./configs/radical_config.yaml OUTPUT_DIR "/output" TRAIN_SAMPLE "True" TRAIN_SAMPLE_PATH "/all_file_path.json"
+    
 
 # # for multi-gpu training
 # python radical/main_radical.py \
